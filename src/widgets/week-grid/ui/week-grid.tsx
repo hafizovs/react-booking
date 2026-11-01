@@ -37,42 +37,76 @@ export function WeekGrid() {
     })
   }
 
+  const stickyTimeHeader =
+    'sticky left-0 z-10 bg-slate-50 shadow-[4px_0_6px_-4px_rgba(15,23,42,0.12)]'
+  const stickyTimeLabel =
+    'sticky left-0 z-10 bg-white shadow-[4px_0_6px_-4px_rgba(15,23,42,0.12)]'
+
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0">
       {lastError && <p className="mb-2 text-sm text-red-600">{lastError}</p>}
-      <div className="grid min-w-[720px] grid-cols-[64px_repeat(7,1fr)] gap-px rounded-lg border border-slate-200 bg-slate-200">
-        <div className="bg-slate-50 p-2 text-xs font-medium text-slate-500">Time</div>
-        {days.map((day) => (
-          <div key={day.toISOString()} className="bg-slate-50 p-2 text-center text-xs font-medium">
-            {format(day, 'EEE d MMM')}
+      <p className="mb-2 text-xs text-slate-500 md:hidden">
+        Swipe horizontally to see all days.
+      </p>
+      <div
+        className="overflow-x-auto overscroll-x-contain rounded-lg [-webkit-overflow-scrolling:touch]"
+        tabIndex={0}
+        role="region"
+        aria-label="Weekly schedule grid"
+      >
+        <div className="grid w-full min-w-[720px] grid-cols-[3rem_repeat(7,minmax(4.5rem,1fr))] gap-px border border-slate-200 bg-slate-200 md:min-w-0 md:grid-cols-[4rem_repeat(7,minmax(0,1fr))]">
+          <div
+            className={cn(
+              'p-2 text-[10px] font-medium text-slate-500 sm:text-xs',
+              stickyTimeHeader,
+            )}
+          >
+            Time
           </div>
-        ))}
-        {HOURS.flatMap((hour) => [
-          <div key={`label-${hour}`} className="bg-white p-2 text-xs text-slate-500">
-            {String(hour).padStart(2, '0')}:00
-          </div>,
-          ...days.map((day, dayIndex) => {
-            const slot = slotAt(dayIndex, hour)
-            const conflict = slot ? conflictIds.has(slot.id) : false
-            return (
-              <button
-                key={`${day.toISOString()}-${hour}`}
-                type="button"
-                onClick={() => onCellClick(dayIndex, hour)}
-                className={cn(
-                  'min-h-10 bg-white p-1 text-left text-xs transition hover:bg-blue-50',
-                  slot && 'bg-blue-100 font-medium text-blue-900',
-                  conflict && 'ring-2 ring-red-400',
-                )}
-                title={slot ? 'Click to remove' : 'Click to book 1h slot'}
-              >
-                {slot?.title ?? ''}
-              </button>
-            )
-          }),
-        ])}
+          {days.map((day) => (
+            <div
+              key={day.toISOString()}
+              className="bg-slate-50 p-1.5 text-center text-[10px] font-medium leading-tight sm:p-2 sm:text-xs"
+            >
+              <span className="md:hidden">{format(day, 'EEE d')}</span>
+              <span className="hidden md:inline">{format(day, 'EEE d MMM')}</span>
+            </div>
+          ))}
+          {HOURS.flatMap((hour) => [
+            <div
+              key={`label-${hour}`}
+              className={cn(
+                'p-2 text-[10px] text-slate-500 sm:text-xs',
+                stickyTimeLabel,
+              )}
+            >
+              {String(hour).padStart(2, '0')}:00
+            </div>,
+            ...days.map((day, dayIndex) => {
+              const slot = slotAt(dayIndex, hour)
+              const conflict = slot ? conflictIds.has(slot.id) : false
+              return (
+                <button
+                  key={`${day.toISOString()}-${hour}`}
+                  type="button"
+                  onClick={() => onCellClick(dayIndex, hour)}
+                  className={cn(
+                    'min-h-11 touch-manipulation bg-white p-1.5 text-left text-[10px] transition hover:bg-blue-50 active:bg-blue-100 sm:min-h-10 sm:p-1 sm:text-xs',
+                    slot && 'bg-blue-100 font-medium text-blue-900 hover:bg-blue-200',
+                    conflict && 'ring-2 ring-red-400 ring-inset',
+                  )}
+                  title={slot ? 'Click to remove' : 'Click to book 1h slot'}
+                >
+                  {slot?.title ?? ''}
+                </button>
+              )
+            }),
+          ])}
+        </div>
       </div>
-      <p className="mt-2 text-xs text-slate-500">Click an empty cell to create a 1-hour slot; click again to remove.</p>
+      <p className="mt-2 text-xs leading-relaxed text-slate-500">
+        Click an empty cell to create a 1-hour slot; click again to remove.
+      </p>
     </div>
   )
 }
